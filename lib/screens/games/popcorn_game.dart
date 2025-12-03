@@ -766,40 +766,41 @@ class _PopcornGameState extends State<PopcornGame>
         popcorn.rotationController,
       ]),
       builder: (context, child) {
-        // Calculate current position with easing (gravity effect)
         final fallProgress =
             Curves.easeIn.transform(popcorn.fallController.value);
         final currentY =
             popcorn.startY + (popcorn.endY - popcorn.startY) * fallProgress;
 
-        // Wobble side to side
         final wobble =
             sin(popcorn.wobbleController.value * pi * 2) * popcorn.wobbleAmount;
         final currentX = popcorn.startX + wobble;
 
-        // Rotation
         final rotation = popcorn.rotationController.value * pi * 4;
 
+        // Larger hitbox for easier tapping (especially on mobile)
+        const double hitboxSize = 100; // Tap area size
+        const double visualSize = 50; // Visual popcorn size (unchanged)
+
         return Positioned(
-          left: currentX - 30,
-          top: currentY - 30,
+          left: currentX - hitboxSize / 2,
+          top: currentY - hitboxSize / 2,
           child: GestureDetector(
             onTapDown: (_) => _catchPopcorn(popcorn.id),
             behavior: HitTestBehavior.opaque,
-            child: Transform.rotate(
-              angle: rotation,
-              child: Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(30),
-                ),
+            child: Container(
+              width: hitboxSize,
+              height: hitboxSize,
+              alignment: Alignment.center,
+              // Debug: uncomment to see hitbox
+              // color: Colors.red.withOpacity(0.2),
+              child: Transform.rotate(
+                angle: rotation,
                 child: Image.asset(
                   popcorn.useAltImage
                       ? 'assets/popcorn_1.png'
                       : 'assets/popcorn_2.png',
-                  width: 50,
-                  height: 50,
+                  width: visualSize,
+                  height: visualSize,
                   fit: BoxFit.contain,
                 ),
               ),
