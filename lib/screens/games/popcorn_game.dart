@@ -6,7 +6,6 @@ import 'dart:math';
 import '../../utils/constants.dart';
 import '../../models/game_state.dart';
 import '../../widgets/congratulations_overlay.dart';
-import 'makeup_game.dart';
 
 enum PopcornPhase { dragSeeds, machineShaking, catchPopcorn, complete }
 
@@ -246,18 +245,13 @@ class _PopcornGameState extends State<PopcornGame>
           context: context,
           title: '🎉 Gelukt!',
           emoji: '🍿',
-          message: 'Je hebt $_popcornCaught popcorn gevangen!',
+          message: 'Hint voor de volgende code:\n\n${AppConstants.hintMakeup}',
           giftMessage: 'Popcorn Maker',
-          buttonText: 'Volgende spel →',
+          buttonText: 'Terug naar start',
           buttonColor: AppConstants.success,
           onButtonPressed: () {
             widget.gameState.completeGame('popcorn', 'Popcorn Maker 🍿');
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => MakeupGame(gameState: widget.gameState),
-              ),
-            );
+            Navigator.of(context).pop();
           },
         );
       } else {
@@ -398,7 +392,7 @@ class _PopcornGameState extends State<PopcornGame>
                   height: 80,
                   decoration: BoxDecoration(
                     color: _isDraggingSeeds
-                        ? AppConstants.accentGold.withOpacity(0.3)
+                        ? AppConstants.accentGold.withValues(alpha: 0.3)
                         : Colors.transparent,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
@@ -499,7 +493,7 @@ class _PopcornGameState extends State<PopcornGame>
                   child: Icon(
                     Icons.keyboard_arrow_up,
                     size: 50,
-                    color: AppConstants.textSecondary.withOpacity(0.5),
+                    color: AppConstants.textSecondary.withValues(alpha: 0.5),
                   ),
                 ),
               ),
@@ -607,7 +601,7 @@ class _PopcornGameState extends State<PopcornGame>
   Widget _buildCatchPhase() {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final bowlY = constraints.maxHeight - 180;
+        // final bowlY = constraints.maxHeight - 180; // Unused
 
         return Stack(
           children: [
@@ -656,7 +650,7 @@ class _PopcornGameState extends State<PopcornGame>
                       border: Border.all(
                         color: _popcornCaught >= _popcornTarget
                             ? AppConstants.success
-                            : AppConstants.textSecondary.withOpacity(0.2),
+                            : AppConstants.textSecondary.withValues(alpha: 0.2),
                         width: 2,
                       ),
                     ),

@@ -115,7 +115,7 @@ class _CongratulationsOverlayState extends State<CongratulationsOverlay>
     final wavingHeight = screenHeight * 0.55; // 55% of screen height
 
     return Scaffold(
-      backgroundColor: Colors.black.withOpacity(0.7),
+      backgroundColor: Colors.black.withValues(alpha: 0.7),
       body: Stack(
         children: [
           // Main dialog content - positioned above the waving animation
@@ -135,7 +135,7 @@ class _CongratulationsOverlayState extends State<CongratulationsOverlay>
                     borderRadius: BorderRadius.circular(28),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.3),
+                        color: Colors.black.withValues(alpha: 0.3),
                         blurRadius: 30,
                         offset: const Offset(0, 15),
                       ),
@@ -154,7 +154,7 @@ class _CongratulationsOverlayState extends State<CongratulationsOverlay>
                             gradient: LinearGradient(
                               colors: [
                                 widget.buttonColor,
-                                widget.buttonColor.withOpacity(0.8),
+                                widget.buttonColor.withValues(alpha: 0.8),
                               ],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
@@ -257,8 +257,8 @@ class _CongratulationsOverlayState extends State<CongratulationsOverlay>
                                     padding: const EdgeInsets.symmetric(
                                         vertical: 16),
                                     elevation: 4,
-                                    shadowColor:
-                                        widget.buttonColor.withOpacity(0.5),
+                                    shadowColor: widget.buttonColor
+                                        .withValues(alpha: 0.5),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(16),
                                     ),

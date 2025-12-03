@@ -3,7 +3,6 @@ import 'package:sinterklaas_mini_games/widgets/congratulations_overlay.dart';
 import 'dart:async';
 import '../../utils/constants.dart';
 import '../../models/game_state.dart';
-import 'popcorn_game.dart';
 
 enum KindleGamePhase { intro, transition, playing }
 
@@ -187,19 +186,13 @@ class _KindleGameState extends State<KindleGame> with TickerProviderStateMixin {
         context: context,
         title: '🎉 Gelukt!',
         emoji: '📖',
-        message:
-            'Je hebt het boek uitgelezen in ${AppConstants.kindleTimeSeconds - _timeRemaining} seconden!',
+        message: 'Hint voor de volgende code:\n\n${AppConstants.hintPopcorn}',
         giftMessage: 'Kindle Page Turner',
-        buttonText: 'Volgende spel →',
+        buttonText: 'Terug naar start',
         buttonColor: AppConstants.success,
         onButtonPressed: () {
           widget.gameState.completeGame('kindle', 'Kindle Page Turner 📖');
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => PopcornGame(gameState: widget.gameState),
-            ),
-          );
+          Navigator.of(context).pop();
         },
       );
     } else {
@@ -290,7 +283,7 @@ class _KindleGameState extends State<KindleGame> with TickerProviderStateMixin {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -340,7 +333,7 @@ class _KindleGameState extends State<KindleGame> with TickerProviderStateMixin {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: AppConstants.textSecondary.withOpacity(0.2),
+                    color: AppConstants.textSecondary.withValues(alpha: 0.2),
                     width: 1,
                   ),
                 ),
@@ -410,7 +403,7 @@ class _KindleGameState extends State<KindleGame> with TickerProviderStateMixin {
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: AppConstants.accentGold.withOpacity(0.3),
+                        color: AppConstants.accentGold.withValues(alpha: 0.3),
                         blurRadius: 20,
                         spreadRadius: 3,
                       ),
@@ -505,7 +498,7 @@ class _KindleGameState extends State<KindleGame> with TickerProviderStateMixin {
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -656,7 +649,7 @@ class _KindleGameState extends State<KindleGame> with TickerProviderStateMixin {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: AppConstants.primaryRed.withOpacity(0.3),
+            color: AppConstants.primaryRed.withValues(alpha: 0.3),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -667,7 +660,7 @@ class _KindleGameState extends State<KindleGame> with TickerProviderStateMixin {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.3),
+              color: Colors.white.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(15),
             ),
             child: Icon(icon, color: Colors.white, size: 30),
@@ -688,7 +681,7 @@ class _KindleGameState extends State<KindleGame> with TickerProviderStateMixin {
                 Text(
                   subtitle,
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withValues(alpha: 0.9),
                     fontSize: 14,
                   ),
                 ),
@@ -745,13 +738,13 @@ class _KindleGameState extends State<KindleGame> with TickerProviderStateMixin {
           height: 120,
           decoration: BoxDecoration(
             color: _buttonPressed
-                ? AppConstants.primaryRed.withOpacity(0.9)
+                ? AppConstants.primaryRed.withValues(alpha: 0.9)
                 : AppConstants.primaryRed,
             borderRadius: BorderRadius.circular(25),
             boxShadow: [
               BoxShadow(
                 color: AppConstants.primaryRed
-                    .withOpacity(_buttonPressed ? 0.2 : 0.4),
+                    .withValues(alpha: _buttonPressed ? 0.2 : 0.4),
                 blurRadius: _buttonPressed ? 5 : 15,
                 offset: Offset(0, _buttonPressed ? 2 : 4),
               ),

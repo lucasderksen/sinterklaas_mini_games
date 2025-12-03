@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../utils/constants.dart';
 import '../../models/game_state.dart';
-import '../game_complete_screen.dart';
+import '../../widgets/congratulations_overlay.dart';
 
 enum MakeupPhase {
   pump,
@@ -26,7 +26,7 @@ class _MakeupGameState extends State<MakeupGame> {
   int _pumpCount = 0;
   int _applicationCount = 0;
   double _cleanProgress = 0;
-  bool _maskApplied = false;
+  // bool _maskApplied = false; // Unused
   double _maskRemoveProgress = 0;
 
   String _getPhaseInstruction() {
@@ -83,7 +83,7 @@ class _MakeupGameState extends State<MakeupGame> {
     if (_phase != MakeupPhase.applyMask) return;
 
     setState(() {
-      _maskApplied = true;
+      // _maskApplied = true; // Unused
       _phase = MakeupPhase.removeMask;
     });
   }
@@ -102,17 +102,20 @@ class _MakeupGameState extends State<MakeupGame> {
 
   void _showCompletion() {
     widget.gameState.completeGame('makeup', 'Makeup Set 💄');
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>
-                GameCompleteScreen(gameState: widget.gameState),
-          ),
-        );
-      }
-    });
+
+    CongratulationsOverlay.show(
+      context: context,
+      title: '🎉 Prachtig!',
+      emoji: '💄',
+      message:
+          'Hint voor de laatste code:\n\n${AppConstants.hintFinalCodeLocation}',
+      giftMessage: 'Makeup Set',
+      buttonText: 'Terug naar start',
+      buttonColor: AppConstants.success,
+      onButtonPressed: () {
+        Navigator.of(context).pop();
+      },
+    );
   }
 
   @override
@@ -216,7 +219,7 @@ class _MakeupGameState extends State<MakeupGame> {
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
+                  color: Colors.black.withValues(alpha: 0.3),
                   blurRadius: 10,
                   offset: const Offset(0, 5),
                 ),
@@ -470,7 +473,7 @@ class _MakeupGameState extends State<MakeupGame> {
         color: AppConstants.cardColor,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 4,
             offset: const Offset(0, -2),
           ),

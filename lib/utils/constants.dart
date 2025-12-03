@@ -25,6 +25,19 @@ class AppConstants {
   // Game Settings - Makeup (no timer)
   static const makeupPumpTaps = 3;
   static const makeupApplicationTaps = 5;
+
+  // Game Codes
+  static const codeKindle = 'KINDLE';
+  static const codePopcorn = 'POPCORN';
+  static const codeMakeup = 'MAKEUP';
+  static const codeGift = 'GIFT';
+
+  // Hints
+  static const hintKindle = 'Look where you read your stories...';
+  static const hintPopcorn = 'Check the place where kernels pop!';
+  static const hintMakeup = 'Find the spot where you get ready!';
+  static const hintGift = 'The final gift is hidden... under the bed!';
+  static const hintFinalCodeLocation = 'Find the QR code... near the mirror!';
 }
 
 class SinterklaasTheme {
@@ -35,7 +48,6 @@ class SinterklaasTheme {
         colorScheme: ColorScheme.light(
           primary: AppConstants.primaryRed,
           secondary: AppConstants.accentGold,
-          background: AppConstants.backgroundColor,
           surface: Colors.white,
         ),
         useMaterial3: true,

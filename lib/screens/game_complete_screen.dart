@@ -62,7 +62,7 @@ class GameCompleteScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(15),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
+                          color: Colors.black.withValues(alpha: 0.05),
                           blurRadius: 10,
                           offset: const Offset(0, 2),
                         ),
@@ -143,7 +143,7 @@ class GameCompleteScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -154,7 +154,7 @@ class GameCompleteScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppConstants.accentGold.withOpacity(0.3),
+              color: AppConstants.accentGold.withValues(alpha: 0.3),
               shape: BoxShape.circle,
             ),
             child: const Text('🎁', style: TextStyle(fontSize: 40)),
