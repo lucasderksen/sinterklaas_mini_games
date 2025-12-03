@@ -135,19 +135,19 @@ class _PopcornGameState extends State<PopcornGame>
 
     // Create animation controller for this popcorn
     final controller = AnimationController(
-      duration: Duration(milliseconds: 1000 + _random.nextInt(1500)),
+      duration: Duration(milliseconds: 1500 + _random.nextInt(1500)),
       vsync: this,
     );
 
     // Horizontal wobble
     final wobbleController = AnimationController(
-      duration: Duration(milliseconds: 300 + _random.nextInt(150)),
+      duration: Duration(milliseconds: 600 + _random.nextInt(150)),
       vsync: this,
     )..repeat(reverse: true);
 
     // Rotation
     final rotationController = AnimationController(
-      duration: Duration(milliseconds: 1000 + _random.nextInt(500)),
+      duration: Duration(milliseconds: 1200 + _random.nextInt(500)),
       vsync: this,
     )..repeat();
 

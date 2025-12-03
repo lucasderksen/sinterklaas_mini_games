@@ -178,21 +178,21 @@ class _CongratulationsOverlayState extends State<CongratulationsOverlay>
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               // Emoji
-                              TweenAnimationBuilder<double>(
-                                tween: Tween(begin: 0, end: 1),
-                                duration: const Duration(milliseconds: 800),
-                                curve: Curves.elasticOut,
-                                builder: (context, value, child) {
-                                  return Transform.scale(
-                                    scale: value,
-                                    child: child,
-                                  );
-                                },
-                                child: Text(
-                                  widget.emoji,
-                                  style: const TextStyle(fontSize: 64),
-                                ),
-                              ),
+                              // TweenAnimationBuilder<double>(
+                              //   tween: Tween(begin: 0, end: 1),
+                              //   duration: const Duration(milliseconds: 800),
+                              //   curve: Curves.elasticOut,
+                              //   builder: (context, value, child) {
+                              //     return Transform.scale(
+                              //       scale: value,
+                              //       child: child,
+                              //     );
+                              //   },
+                              //   child: Text(
+                              //     widget.emoji,
+                              //     style: const TextStyle(fontSize: 64),
+                              //   ),
+                              // ),
                               const SizedBox(height: 12),
 
                               // Message
