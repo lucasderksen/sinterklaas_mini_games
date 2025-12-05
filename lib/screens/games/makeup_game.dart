@@ -109,9 +109,7 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
   // Mask phase - drag cucumbers
   bool _leftCucumberPlaced = false;
   bool _rightCucumberPlaced = false;
-  Offset? _draggingCucumberPosition;
-  bool _isDraggingLeftCucumber = false;
-  bool _isDraggingRightCucumber = false;
+
   double _maskSpreadProgress = 0;
 
   // Glow phase - timing game
@@ -123,20 +121,20 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
   String? _timingFeedback;
 
   // Timer
-  int _timeRemaining = 90;
+  int _timeRemaining = 30;
   bool _gameOver = false;
   bool _gameWon = false;
 
   // Animations
   late AnimationController _pumpAnimController;
   late AnimationController _shakeController;
-  late AnimationController _glowController;
+
   late AnimationController _timerPulseController;
   late AnimationController _particleController;
 
   late Animation<double> _pumpBounce;
   late Animation<double> _shakeAnimation;
-  late Animation<double> _glowAnimation;
+
   late Animation<double> _timerPulse;
 
   final Random _random = Random();
@@ -193,15 +191,6 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
 
     _shakeAnimation = Tween<double>(begin: 0, end: 10).animate(
       CurvedAnimation(parent: _shakeController, curve: Curves.elasticIn),
-    );
-
-    _glowController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
-      vsync: this,
-    )..repeat(reverse: true);
-
-    _glowAnimation = Tween<double>(begin: 0.3, end: 1.0).animate(
-      CurvedAnimation(parent: _glowController, curve: Curves.easeInOut),
     );
 
     _timerPulseController = AnimationController(
@@ -308,7 +297,7 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
   void dispose() {
     _pumpAnimController.dispose();
     _shakeController.dispose();
-    _glowController.dispose();
+
     _timerPulseController.dispose();
     _particleController.dispose();
     _timingBarController.dispose();
@@ -426,7 +415,8 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
     if (_phase != MakeupPhase.clean || _gameOver) return;
 
     setState(() {
-      _cleanProgress += (details.delta.dx.abs() + details.delta.dy.abs()) / 300;
+      _cleanProgress +=
+          (details.delta.dx.abs() + details.delta.dy.abs()) / 2000;
 
       if (_random.nextDouble() > 0.7) {
         _bubbles.add(Offset(
@@ -452,7 +442,7 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
     setState(() {
       // Circular motion detection - any swipe counts
       _maskSpreadProgress +=
-          (details.delta.dx.abs() + details.delta.dy.abs()) / 400;
+          (details.delta.dx.abs() + details.delta.dy.abs()) / 2000;
 
       if (_maskSpreadProgress >= 1) {
         _startGlowPhase();
@@ -525,7 +515,7 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
         title: 'Prachtig!',
         emoji: '💄',
         message:
-            'Je hebt het in ${90 - _timeRemaining} seconden gehaald!\n\nHint voor de laatste code:\n${AppConstants.hintFinalCodeLocation}',
+            'Je hebt het in ${30 - _timeRemaining} seconden gehaald!\n\nHint voor de laatste code:\n${AppConstants.hintFinalCodeLocation}',
         giftMessage: 'Makeup Set',
         buttonText: 'Terug naar start',
         buttonColor: AppConstants.success,
@@ -565,31 +555,13 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppConstants.backgroundColor,
-      appBar: AppBar(
-        backgroundColor: AppConstants.backgroundColor,
-        elevation: 0,
-        leading: IconButton(
-          onPressed: () => Navigator.of(context).pop(),
-          icon:
-              const Icon(Icons.arrow_back_ios, color: AppConstants.textPrimary),
-        ),
-        title: const Text(
-          'Makeup Salon',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: AppConstants.textPrimary,
-          ),
-        ),
-        centerTitle: true,
-      ),
       body: SafeArea(
         child: Stack(
           children: [
             Column(
               children: [
                 _buildTimer(),
-                _buildPhaseProgress(),
+                // _buildPhaseProgress(),
                 Expanded(
                   child: _buildGameArea(),
                 ),
@@ -613,7 +585,7 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             decoration: BoxDecoration(
-              color: _getTimerColor().withOpacity(0.1),
+              color: _getTimerColor().withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: _getTimerColor(),
@@ -692,7 +664,7 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
   Widget _buildPhaseArrow() {
     return Icon(
       Icons.chevron_right,
-      color: AppConstants.textSecondary.withOpacity(0.3),
+      color: AppConstants.textSecondary.withValues(alpha: 0.3),
       size: 16,
     );
   }
@@ -720,7 +692,7 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                   ? AppConstants.success
                   : isActive
                       ? _getPhaseColor()
-                      : AppConstants.textSecondary.withOpacity(0.3),
+                      : AppConstants.textSecondary.withValues(alpha: 0.3),
               width: 2,
             ),
           ),
@@ -755,7 +727,7 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
         return Transform.translate(
           offset: Offset(sin(_shakeAnimation.value) * 5, 0),
           child: Container(
-            color: Colors.black.withOpacity(0.9),
+            color: Colors.black.withValues(alpha: 0.9),
             child: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -794,7 +766,7 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                       ),
                       const SizedBox(width: 8),
                       const Text(
-                        'De klant is boos weggelopen...',
+                        'Je deed er te lang over!',
                         style: TextStyle(
                           fontSize: 20,
                           color: Colors.white70,
@@ -803,13 +775,6 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                     ],
                   ),
                   const SizedBox(height: 10),
-                  Text(
-                    'Je was bij fase: ${_phase.name}',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey,
-                    ),
-                  ),
                   const SizedBox(height: 40),
                   ElevatedButton(
                     onPressed: _restartGame,
@@ -837,17 +802,6 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                           ),
                         ),
                       ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: const Text(
-                      'Terug naar menu',
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 16,
-                      ),
                     ),
                   ),
                 ],
@@ -914,7 +868,7 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.black.withValues(alpha: 0.1),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -1019,7 +973,7 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: AppConstants.primaryRed.withOpacity(0.2),
+                        color: AppConstants.primaryRed.withValues(alpha: 0.2),
                         blurRadius: 15,
                         offset: const Offset(0, 6),
                       ),
@@ -1128,7 +1082,7 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: AppConstants.accentGold.withOpacity(0.3),
+                  color: AppConstants.accentGold.withValues(alpha: 0.3),
                   blurRadius: 15,
                   spreadRadius: 3,
                 ),
@@ -1200,7 +1154,7 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.blue.withOpacity(0.2),
+                  color: Colors.blue.withValues(alpha: 0.2),
                   blurRadius: 15,
                   spreadRadius: 3,
                 ),
@@ -1220,7 +1174,7 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                     width: 180,
                     height: 180,
                     decoration: BoxDecoration(
-                      color: AppConstants.primaryRed.withOpacity(0.3),
+                      color: AppConstants.primaryRed.withValues(alpha: 0.3),
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -1308,7 +1262,7 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: AppConstants.success.withOpacity(0.2),
+                          color: AppConstants.success.withValues(alpha: 0.2),
                           blurRadius: 15,
                           spreadRadius: 3,
                         ),
@@ -1334,7 +1288,8 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                               width: 180,
                               height: 180,
                               decoration: BoxDecoration(
-                                color: AppConstants.success.withOpacity(0.5),
+                                color:
+                                    AppConstants.success.withValues(alpha: 0.5),
                                 shape: BoxShape.circle,
                               ),
                             ),
@@ -1350,7 +1305,6 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                                 if (details.data == 'left') {
                                   setState(() {
                                     _leftCucumberPlaced = true;
-                                    _isDraggingLeftCucumber = false;
                                   });
                                 }
                               },
@@ -1360,8 +1314,9 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                                   height: 50,
                                   decoration: BoxDecoration(
                                     color: candidateData.isNotEmpty
-                                        ? AppConstants.success.withOpacity(0.5)
-                                        : Colors.grey.withOpacity(0.3),
+                                        ? AppConstants.success
+                                            .withValues(alpha: 0.5)
+                                        : Colors.grey.withValues(alpha: 0.3),
                                     shape: BoxShape.circle,
                                     border: Border.all(
                                       color: candidateData.isNotEmpty
@@ -1393,7 +1348,6 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                                 if (details.data == 'right') {
                                   setState(() {
                                     _rightCucumberPlaced = true;
-                                    _isDraggingRightCucumber = false;
                                   });
                                 }
                               },
@@ -1403,8 +1357,9 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                                   height: 50,
                                   decoration: BoxDecoration(
                                     color: candidateData.isNotEmpty
-                                        ? AppConstants.success.withOpacity(0.5)
-                                        : Colors.grey.withOpacity(0.3),
+                                        ? AppConstants.success
+                                            .withValues(alpha: 0.5)
+                                        : Colors.grey.withValues(alpha: 0.3),
                                     shape: BoxShape.circle,
                                     border: Border.all(
                                       color: candidateData.isNotEmpty
@@ -1611,7 +1566,7 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
               color: AppConstants.cardColor,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: AppConstants.textSecondary.withOpacity(0.3),
+                color: AppConstants.textSecondary.withValues(alpha: 0.3),
                 width: 2,
               ),
             ),
@@ -1623,7 +1578,7 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                     width: 60,
                     height: 60,
                     decoration: BoxDecoration(
-                      color: AppConstants.success.withOpacity(0.3),
+                      color: AppConstants.success.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
                         color: AppConstants.success,
@@ -1656,7 +1611,7 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                               color: (_timingSuccess
                                       ? AppConstants.success
                                       : AppConstants.primaryRed)
-                                  .withOpacity(0.5),
+                                  .withValues(alpha: 0.5),
                               blurRadius: 8,
                               spreadRadius: 2,
                             ),
@@ -1741,7 +1696,7 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                 boxShadow: _canTapTiming
                     ? [
                         BoxShadow(
-                          color: AppConstants.accentGold.withOpacity(0.4),
+                          color: AppConstants.accentGold.withValues(alpha: 0.4),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
@@ -1806,7 +1761,7 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: AppConstants.accentGold.withOpacity(0.3),
+                      color: AppConstants.accentGold.withValues(alpha: 0.3),
                       blurRadius: 20,
                       spreadRadius: 5,
                     ),
@@ -1865,7 +1820,7 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                         vertical: 10,
                       ),
                       decoration: BoxDecoration(
-                        color: AppConstants.success.withOpacity(0.1),
+                        color: AppConstants.success.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: AppConstants.success,
@@ -1899,7 +1854,7 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
         color: AppConstants.cardColor,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: color.withOpacity(0.3),
+          color: color.withValues(alpha: 0.3),
           width: 1,
         ),
       ),
@@ -1928,7 +1883,7 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
             isCompleted ? Icons.check_circle : Icons.circle_outlined,
             color: isCompleted
                 ? color
-                : AppConstants.textSecondary.withOpacity(0.3),
+                : AppConstants.textSecondary.withValues(alpha: 0.3),
             size: 20,
           ),
         );
@@ -1942,7 +1897,7 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         decoration: BoxDecoration(
-          color: _getPhaseColor().withOpacity(0.1),
+          color: _getPhaseColor().withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: _getPhaseColor(),

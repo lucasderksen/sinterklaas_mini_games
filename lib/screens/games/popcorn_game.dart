@@ -778,7 +778,7 @@ class _PopcornGameState extends State<PopcornGame>
         final rotation = popcorn.rotationController.value * pi * 4;
 
         // Larger hitbox for easier tapping (especially on mobile)
-        const double hitboxSize = 100; // Tap area size
+        const double hitboxSize = 125; // Tap area size
         const double visualSize = 50; // Visual popcorn size (unchanged)
 
         return Positioned(

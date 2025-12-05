@@ -437,7 +437,7 @@ class _KindleGameState extends State<KindleGame> with TickerProviderStateMixin {
             right: 20,
             child: _buildInstructionBubble(
               '👆 Tik op de bank!',
-              'Laat je zus lekker zitten om te lezen',
+              'Ga lekker zitten om te lezen',
               Icons.weekend,
             ),
           ),
@@ -699,27 +699,12 @@ class _KindleGameState extends State<KindleGame> with TickerProviderStateMixin {
     }
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(100),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         decoration: BoxDecoration(
           color: AppConstants.cardColor,
           borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text('🎅', style: TextStyle(fontSize: 30)),
-            const SizedBox(width: 12),
-            Text(
-              'Sinterklaas Surprise',
-              style: TextStyle(
-                color: AppConstants.textPrimary,
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
         ),
       ),
     );

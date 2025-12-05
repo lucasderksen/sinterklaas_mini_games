@@ -41,7 +41,7 @@ class _MainScreenState extends State<MainScreen> {
         break;
       default:
         setState(() {
-          _errorMessage = 'That code doesn\'t look right. Try again!';
+          _errorMessage = 'Dat klopt niet. Probeer opnieuw!';
         });
         return;
     }
@@ -87,14 +87,9 @@ class _MainScreenState extends State<MainScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(
-                        Icons.auto_awesome,
-                        size: 64,
-                        color: AppConstants.accentGold,
-                      ),
                       const SizedBox(height: 24),
                       Text(
-                        'Welcome Sinterklaas!',
+                        'Welkom Daniela!',
                         style:
                             Theme.of(context).textTheme.headlineSmall?.copyWith(
                                   fontWeight: FontWeight.bold,
@@ -104,7 +99,7 @@ class _MainScreenState extends State<MainScreen> {
                       ),
                       const SizedBox(height: 8),
                       const Text(
-                        'Enter your code to find the next surprise',
+                        'Vul de code in om je cadeautje te vinden',
                         textAlign: TextAlign.center,
                         style: TextStyle(color: AppConstants.textSecondary),
                       ),
@@ -113,7 +108,7 @@ class _MainScreenState extends State<MainScreen> {
                         controller: _codeController,
                         textCapitalization: TextCapitalization.characters,
                         decoration: InputDecoration(
-                          labelText: 'Enter Code',
+                          labelText: 'Vul hier je code in',
                           border: const OutlineInputBorder(),
                           errorText: _errorMessage,
                           prefixIcon: const Icon(Icons.vpn_key),
@@ -134,13 +129,48 @@ class _MainScreenState extends State<MainScreen> {
                             ),
                           ),
                           child: const Text(
-                            'GO!',
+                            'Start Spel!',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
+                      ),
+                      const SizedBox(height: 24),
+                      const ExpansionTile(
+                        title: Text(
+                          '📜 Gedicht van Sint',
+                          style: TextStyle(
+                            color: AppConstants.primaryRed,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: Text(
+                              "Lieve Daniela,\n\n"
+                              "Sinterklaas is weer in het land,\n"
+                              "En heeft iets leuks voor jou gepland.\n"
+                              "Geen chocoladeletter of marsepein,\n"
+                              "Maar een digitaal spel, dat is pas fijn!\n\n"
+                              "Je moet codes zoeken, heel goed speuren,\n"
+                              "Om te zien wat er gaat gebeuren.\n"
+                              "Drie spellen staan er voor je klaar,\n"
+                              "Met elk een code, is dat niet raar?\n\n"
+                              "De eerste code krijg je cadeau,\n"
+                              "Voor je e-reader, dat maakt je blij zo.\n"
+                              "Vul 'E-READER' in en ga snel van start,\n"
+                              "Sint wenst je veel plezier met heel zijn hart!",
+                              style: TextStyle(
+                                fontStyle: FontStyle.italic,
+                                height: 1.5,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),

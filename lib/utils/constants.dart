@@ -27,9 +27,9 @@ class AppConstants {
   static const makeupApplicationTaps = 5;
 
   // Game Codes
-  static const codeKindle = 'KINDLE';
+  static const codeKindle = 'E-READER';
   static const codePopcorn = 'POPCORN';
-  static const codeMakeup = 'MAKEUP';
+  static const codeMakeup = 'MAKE-UP';
   static const codeGift = 'GIFT';
 
   // Hints
