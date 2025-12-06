@@ -112,7 +112,7 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
 
   double _maskSpreadProgress = 0;
 
-  // Glow phase - timing game
+  // Glow phase - timing game (improved)
   late AnimationController _timingBarController;
   double _timingBarPosition = 0; // -1 to 1
   bool _canTapTiming = true;
@@ -120,8 +120,16 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
   bool _timingSuccess = false;
   String? _timingFeedback;
 
+  // Improved timing game settings
+  final double _targetZoneSize = 0.25; // Size of target zone (-0.25 to 0.25)
+  final double _initialBarSpeed =
+      500; // Initial duration in ms (slower = easier)
+  double _currentBarSpeed = 500;
+  bool _barMovingRight = true;
+  double _lastTapPosition = 0;
+
   // Timer
-  int _timeRemaining = 30;
+  int _timeRemaining = 22;
   bool _gameOver = false;
   bool _gameWon = false;
 
@@ -207,18 +215,26 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
       vsync: this,
     )..addListener(_updateParticles);
 
-    // Timing bar for glow phase
+    // Improved timing bar - linear back and forth movement
     _timingBarController = AnimationController(
-      duration: const Duration(milliseconds: 1200),
+      duration: Duration(milliseconds: _initialBarSpeed.toInt()),
       vsync: this,
-    )..addListener(() {
-        if (_phase == MakeupPhase.removeMask && !_timingSuccess) {
-          setState(() {
-            // Oscillate between -1 and 1
-            _timingBarPosition = sin(_timingBarController.value * 2 * pi);
-          });
-        }
-      });
+    )..addListener(_updateTimingBar);
+  }
+
+  void _updateTimingBar() {
+    if (_phase != MakeupPhase.removeMask || _timingSuccess || _gameOver) return;
+
+    setState(() {
+      // Linear movement from -1 to 1 and back
+      double progress = _timingBarController.value;
+
+      if (_barMovingRight) {
+        _timingBarPosition = -1 + (progress * 2);
+      } else {
+        _timingBarPosition = 1 - (progress * 2);
+      }
+    });
   }
 
   void _updateParticles() {
@@ -274,7 +290,7 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
       _poppedZits = 0;
       _gameOver = false;
       _gameWon = false;
-      _timeRemaining = 90;
+      _timeRemaining = 22;
       _particles = [];
       _makeupSpots = [];
       _bubbles = [];
@@ -286,10 +302,14 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
       _timingAttempts = 0;
       _timingSuccess = false;
       _timingFeedback = null;
+      _currentBarSpeed = _initialBarSpeed;
+      _barMovingRight = true;
       _initializeZits();
     });
     _shakeController.reset();
     _timingBarController.reset();
+    _timingBarController.duration =
+        Duration(milliseconds: _initialBarSpeed.toInt());
     _startTimer();
   }
 
@@ -320,26 +340,26 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
   String _getPhaseInstruction() {
     switch (_phase) {
       case MakeupPhase.popZits:
-        return 'Pop alle puistjes! ($_poppedZits/$_totalZits)\nTik snel op de puistjes!';
+        return 'Pop alle puistjes! ($_poppedZits/$_totalZits)';
       case MakeupPhase.pump:
-        return 'Pump het product! ($_pumpCount/$_requiredPumps)\nTik snel op de pomp!';
+        return 'Pump het product! ($_pumpCount/$_requiredPumps)';
       case MakeupPhase.apply:
-        return 'Breng makeup aan! ($_applicationCount/$_requiredApplications)\nTik op het gezicht!';
+        return 'Breng makeup aan! ($_applicationCount/$_requiredApplications)';
       case MakeupPhase.clean:
-        return 'Maak het gezicht schoon!\nSwipe over het gezicht!';
+        return 'Swipe om schoon te maken!';
       case MakeupPhase.applyMask:
         if (!_leftCucumberPlaced || !_rightCucumberPlaced) {
-          return 'Sleep de komkommers naar de ogen!\nDaarna smeer je het masker uit.';
+          return 'Sleep komkommers naar de ogen!';
         } else {
-          return 'Smeer het masker uit!\nSwipe in cirkels over het gezicht.';
+          return 'Swipe om masker uit te smeren!';
         }
       case MakeupPhase.removeMask:
         if (_timingSuccess) {
-          return 'Perfect timing!';
+          return 'Perfect timing! ✨';
         }
-        return 'Stop de balk in het groene gebied!\nTik op het juiste moment.';
+        return 'Stop in het groene gebied!';
       case MakeupPhase.complete:
-        return 'Perfect! Je bent klaar!';
+        return 'Perfect! Je bent klaar! 💄';
     }
   }
 
@@ -453,25 +473,54 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
   void _startGlowPhase() {
     setState(() {
       _phase = MakeupPhase.removeMask;
-      _timingBarPosition = 0;
+      _timingBarPosition = -1;
       _canTapTiming = true;
       _timingSuccess = false;
+      _barMovingRight = true;
+      _currentBarSpeed = _initialBarSpeed;
     });
-    _timingBarController.repeat();
+    _timingBarController.duration =
+        Duration(milliseconds: _currentBarSpeed.toInt());
+    _timingBarController.reset();
+    _startTimingBarLoop();
+  }
+
+  void _startTimingBarLoop() {
+    if (_timingSuccess || _gameOver || _phase != MakeupPhase.removeMask) return;
+
+    _timingBarController.forward().then((_) {
+      if (!mounted || _timingSuccess || _gameOver) return;
+
+      setState(() {
+        _barMovingRight = !_barMovingRight;
+      });
+      _timingBarController.reset();
+      _startTimingBarLoop();
+    });
   }
 
   void _handleTimingTap() {
     if (_phase != MakeupPhase.removeMask || _gameOver) return;
     if (!_canTapTiming || _timingSuccess) return;
 
+    // Store the position at tap moment for accurate detection
+    _lastTapPosition = _timingBarPosition;
+
     setState(() {
       _timingAttempts++;
 
-      // Check if within target zone (-0.15 to 0.15 is the sweet spot)
-      if (_timingBarPosition.abs() <= 0.18) {
-        // Success!
+      // Check if within target zone with improved detection
+      bool isInTargetZone = _lastTapPosition.abs() <= _targetZoneSize;
+
+      // Add small tolerance for edge cases
+      double tolerance = 0.05;
+      bool isNearTargetZone =
+          _lastTapPosition.abs() <= (_targetZoneSize + tolerance);
+
+      if (isInTargetZone) {
+        // Perfect hit!
         _timingSuccess = true;
-        _timingFeedback = 'PERFECT!';
+        _timingFeedback = 'PERFECT! 🎉';
         _timingBarController.stop();
 
         Future.delayed(const Duration(milliseconds: 800), () {
@@ -483,17 +532,28 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
             _showCompletion();
           }
         });
+      } else if (isNearTargetZone) {
+        // Close but not quite - give another immediate chance
+        _timingFeedback = 'BIJNA! 💫';
+
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted && _phase == MakeupPhase.removeMask && !_timingSuccess) {
+            setState(() {
+              _timingFeedback = null;
+            });
+          }
+        });
       } else {
-        // Miss - disable tapping for 2 seconds
+        // Miss - disable tapping briefly
         _canTapTiming = false;
-        _timingFeedback = 'GEMIST!';
+        _timingFeedback = 'GEMIST! ❌';
 
-        // Speed up the bar slightly after each miss
-        _timingBarController.duration = Duration(
-          milliseconds: max(600, 1200 - (_timingAttempts * 100)),
-        );
+        // Speed up the bar slightly after each miss (but not too much)
+        _currentBarSpeed = max(800, _currentBarSpeed - 100);
+        _timingBarController.duration =
+            Duration(milliseconds: _currentBarSpeed.toInt());
 
-        Future.delayed(const Duration(seconds: 2), () {
+        Future.delayed(const Duration(milliseconds: 1200), () {
           if (mounted && _phase == MakeupPhase.removeMask && !_timingSuccess) {
             setState(() {
               _canTapTiming = true;
@@ -515,7 +575,7 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
         title: 'Prachtig!',
         emoji: '💄',
         message:
-            'Je hebt het in ${30 - _timeRemaining} seconden gehaald!\n\nHint voor de laatste code:\n${AppConstants.hintFinalCodeLocation}',
+            'Je hebt het in ${22 - _timeRemaining} seconden gehaald!\n\nHint voor de volgende code:\n${AppConstants.hintFinalCodeLocation}',
         giftMessage: 'Makeup Set',
         buttonText: 'Terug naar start',
         buttonColor: AppConstants.success,
@@ -560,12 +620,10 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
           children: [
             Column(
               children: [
-                _buildTimer(),
-                // _buildPhaseProgress(),
+                _buildHeaderBar(), // Combined timer and instructions
                 Expanded(
                   child: _buildGameArea(),
                 ),
-                _buildInstructions(),
               ],
             ),
             if (_gameOver && !_gameWon) _buildGameOverOverlay(),
@@ -575,57 +633,92 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildTimer() {
-    return AnimatedBuilder(
-      animation: _timerPulse,
-      builder: (context, child) {
-        return Transform.scale(
-          scale: _timeRemaining <= 10 ? _timerPulse.value : 1.0,
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            decoration: BoxDecoration(
-              color: _getTimerColor().withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: _getTimerColor(),
-                width: 2,
+  // NEW: Combined header with timer and instructions horizontally
+  Widget _buildHeaderBar() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Row(
+        children: [
+          // Timer (compact)
+          AnimatedBuilder(
+            animation: _timerPulse,
+            builder: (context, child) {
+              return Transform.scale(
+                scale: _timeRemaining <= 10 ? _timerPulse.value : 1.0,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: _getTimerColor().withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: _getTimerColor(),
+                      width: 2,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        _timeRemaining <= 10
+                            ? Icons.warning_rounded
+                            : Icons.timer_rounded,
+                        color: _getTimerColor(),
+                        size: 20,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '$_timeRemaining',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: _getTimerColor(),
+                          fontFamily: 'monospace',
+                        ),
+                      ),
+                      Text(
+                        's',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: _getTimerColor(),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+
+          const SizedBox(width: 10),
+
+          // Instructions (expanded)
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: _getPhaseColor().withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: _getPhaseColor(),
+                  width: 2,
+                ),
+              ),
+              child: Text(
+                _getPhaseInstruction(),
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: AppConstants.textPrimary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  _timeRemaining <= 10
-                      ? Icons.warning_rounded
-                      : Icons.timer_rounded,
-                  color: _getTimerColor(),
-                  size: 28,
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  '$_timeRemaining',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: _getTimerColor(),
-                    fontFamily: 'monospace',
-                  ),
-                ),
-                const SizedBox(width: 5),
-                Text(
-                  'sec',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: _getTimerColor(),
-                  ),
-                ),
-              ],
-            ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 
@@ -838,20 +931,12 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
         const Text(
           'Puistjes Alert!',
           style: TextStyle(
-            fontSize: 28,
+            fontSize: 24,
             fontWeight: FontWeight.bold,
             color: AppConstants.textPrimary,
           ),
         ),
-        const SizedBox(height: 8),
-        const Text(
-          'Pop ze allemaal voordat de tijd om is!',
-          style: TextStyle(
-            fontSize: 14,
-            color: AppConstants.textSecondary,
-          ),
-        ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
         SizedBox(
           width: 240,
           height: 240,
@@ -926,7 +1011,7 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
             ],
           ),
         ),
-        const SizedBox(height: 30),
+        const SizedBox(height: 20),
         _buildProgressBar(_poppedZits / _totalZits, AppConstants.danger),
         const SizedBox(height: 10),
         _buildProgressDots(_totalZits, _poppedZits, AppConstants.danger),
@@ -940,7 +1025,7 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
         const Text(
           'Pump het product!',
           style: TextStyle(
-            fontSize: 28,
+            fontSize: 24,
             fontWeight: FontWeight.bold,
             color: AppConstants.textPrimary,
           ),
@@ -949,12 +1034,12 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
         Text(
           '$_pumpCount / $_requiredPumps',
           style: const TextStyle(
-            fontSize: 20,
+            fontSize: 18,
             fontWeight: FontWeight.bold,
             color: AppConstants.primaryRed,
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
         GestureDetector(
           onTap: _handlePumpTap,
           child: AnimatedBuilder(
@@ -963,7 +1048,7 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
               return Transform.scale(
                 scale: _pumpBounce.value,
                 child: Container(
-                  padding: const EdgeInsets.all(30),
+                  padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
                     color: AppConstants.cardColor,
                     borderRadius: BorderRadius.circular(20),
@@ -987,13 +1072,13 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                         children: [
                           Image.asset(
                             MakeupAssets.pumpBottle,
-                            width: 100,
-                            height: 100,
+                            width: 80,
+                            height: 80,
                           ),
                           if (_pumpCount > 0)
                             Positioned(
-                              top: 20,
-                              right: -20,
+                              top: 15,
+                              right: -15,
                               child: TweenAnimationBuilder<double>(
                                 tween: Tween(begin: 0, end: 1),
                                 duration: const Duration(milliseconds: 200),
@@ -1002,8 +1087,8 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                                     opacity: value,
                                     child: Image.asset(
                                       MakeupAssets.productSpray,
-                                      width: 30 + (value * 10),
-                                      height: 30 + (value * 10),
+                                      width: 25 + (value * 8),
+                                      height: 25 + (value * 8),
                                     ),
                                   );
                                 },
@@ -1011,11 +1096,11 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                             ),
                         ],
                       ),
-                      const SizedBox(height: 15),
+                      const SizedBox(height: 12),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 30,
-                          vertical: 15,
+                          horizontal: 24,
+                          vertical: 12,
                         ),
                         decoration: BoxDecoration(
                           color: AppConstants.primaryRed,
@@ -1025,12 +1110,12 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(Icons.touch_app,
-                                color: Colors.white, size: 28),
-                            SizedBox(width: 10),
+                                color: Colors.white, size: 24),
+                            SizedBox(width: 8),
                             Text(
                               'PUMP!',
                               style: TextStyle(
-                                fontSize: 24,
+                                fontSize: 20,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
                               ),
@@ -1045,7 +1130,7 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
             },
           ),
         ),
-        const SizedBox(height: 30),
+        const SizedBox(height: 20),
         _buildProgressBar(_pumpCount / _requiredPumps, AppConstants.primaryRed),
       ],
     );
@@ -1057,7 +1142,7 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
         const Text(
           'Breng de makeup aan!',
           style: TextStyle(
-            fontSize: 28,
+            fontSize: 24,
             fontWeight: FontWeight.bold,
             color: AppConstants.textPrimary,
           ),
@@ -1066,17 +1151,17 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
         Text(
           '$_applicationCount / $_requiredApplications',
           style: const TextStyle(
-            fontSize: 20,
+            fontSize: 18,
             fontWeight: FontWeight.bold,
             color: AppConstants.accentGold,
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
         GestureDetector(
           onTapDown: _handleFaceTap,
           child: Container(
-            width: 220,
-            height: 220,
+            width: 200,
+            height: 200,
             decoration: BoxDecoration(
               color: const Color(0xFFFFDBAC),
               shape: BoxShape.circle,
@@ -1093,13 +1178,13 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
               children: [
                 Image.asset(
                   MakeupAssets.faceHappy,
-                  width: 300,
-                  height: 300,
+                  width: 280,
+                  height: 280,
                 ),
                 ..._makeupSpots.map((spot) {
                   return Positioned(
-                    left: spot.dx - 15,
-                    top: spot.dy - 15,
+                    left: spot.dx - 12,
+                    top: spot.dy - 12,
                     child: TweenAnimationBuilder<double>(
                       tween: Tween(begin: 0, end: 1),
                       duration: const Duration(milliseconds: 500),
@@ -1110,8 +1195,8 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                             opacity: value,
                             child: Image.asset(
                               MakeupAssets.sparkle,
-                              width: 30,
-                              height: 30,
+                              width: 24,
+                              height: 24,
                             ),
                           ),
                         );
@@ -1123,7 +1208,7 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
             ),
           ),
         ),
-        const SizedBox(height: 30),
+        const SizedBox(height: 20),
         _buildProgressBar(
           _applicationCount / _requiredApplications,
           AppConstants.accentGold,
@@ -1138,17 +1223,17 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
       child: Column(
         children: [
           const Text(
-            'Maak het gezicht schoon!',
+            'Maak schoon!',
             style: TextStyle(
-              fontSize: 28,
+              fontSize: 24,
               fontWeight: FontWeight.bold,
               color: AppConstants.textPrimary,
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
           Container(
-            width: 220,
-            height: 220,
+            width: 200,
+            height: 200,
             decoration: BoxDecoration(
               color: const Color(0xFFFFDBAC),
               shape: BoxShape.circle,
@@ -1165,14 +1250,14 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
               children: [
                 Image.asset(
                   MakeupAssets.faceRelaxed,
-                  width: 300,
-                  height: 300,
+                  width: 280,
+                  height: 280,
                 ),
                 Opacity(
                   opacity: (1 - _cleanProgress).clamp(0.0, 1.0),
                   child: Container(
-                    width: 180,
-                    height: 180,
+                    width: 160,
+                    height: 160,
                     decoration: BoxDecoration(
                       color: AppConstants.primaryRed.withValues(alpha: 0.3),
                       shape: BoxShape.circle,
@@ -1181,8 +1266,8 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                 ),
                 ..._bubbles.map((bubble) {
                   return Positioned(
-                    left: bubble.dx - 15,
-                    top: bubble.dy - 15,
+                    left: bubble.dx - 12,
+                    top: bubble.dy - 12,
                     child: TweenAnimationBuilder<double>(
                       tween: Tween(begin: 0, end: 1),
                       duration: const Duration(milliseconds: 500),
@@ -1193,8 +1278,8 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                             opacity: (1 - value).clamp(0.0, 1.0),
                             child: Image.asset(
                               MakeupAssets.bubble,
-                              width: 20 + value * 10,
-                              height: 20 + value * 10,
+                              width: 16 + value * 8,
+                              height: 16 + value * 8,
                             ),
                           ),
                         );
@@ -1205,25 +1290,25 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset(MakeupAssets.arrowLeft, width: 32, height: 32),
-              const SizedBox(width: 20),
+              Image.asset(MakeupAssets.arrowLeft, width: 28, height: 28),
+              const SizedBox(width: 16),
               const Text(
                 'Swipe!',
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Colors.blue,
                 ),
               ),
-              const SizedBox(width: 20),
-              Image.asset(MakeupAssets.arrowRight, width: 32, height: 32),
+              const SizedBox(width: 16),
+              Image.asset(MakeupAssets.arrowRight, width: 28, height: 28),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
           _buildProgressBar(_cleanProgress, Colors.blue),
         ],
       ),
@@ -1236,16 +1321,16 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
         const Text(
           'Tijd voor een masker!',
           style: TextStyle(
-            fontSize: 28,
+            fontSize: 24,
             fontWeight: FontWeight.bold,
             color: AppConstants.textPrimary,
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 12),
 
         // Main game area
         SizedBox(
-          height: 350,
+          height: 320,
           child: Stack(
             alignment: Alignment.center,
             children: [
@@ -1255,8 +1340,8 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                 child: GestureDetector(
                   onPanUpdate: _handleMaskSpread,
                   child: Container(
-                    width: 220,
-                    height: 220,
+                    width: 200,
+                    height: 200,
                     decoration: BoxDecoration(
                       color: const Color(0xFFFFDBAC),
                       shape: BoxShape.circle,
@@ -1276,8 +1361,8 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                           _leftCucumberPlaced && _rightCucumberPlaced
                               ? MakeupAssets.faceWithCucumbers
                               : MakeupAssets.faceRelaxed,
-                          width: 300,
-                          height: 300,
+                          width: 280,
+                          height: 280,
                         ),
 
                         // Mask overlay (shows progress)
@@ -1285,8 +1370,8 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                           Opacity(
                             opacity: _maskSpreadProgress.clamp(0.0, 0.7),
                             child: Container(
-                              width: 180,
-                              height: 180,
+                              width: 160,
+                              height: 160,
                               decoration: BoxDecoration(
                                 color:
                                     AppConstants.success.withValues(alpha: 0.5),
@@ -1298,8 +1383,8 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                         // Left eye drop zone
                         if (!_leftCucumberPlaced)
                           Positioned(
-                            left: 55,
-                            top: 80,
+                            left: 50,
+                            top: 70,
                             child: DragTarget<String>(
                               onAcceptWithDetails: (details) {
                                 if (details.data == 'left') {
@@ -1310,8 +1395,8 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                               },
                               builder: (context, candidateData, rejectedData) {
                                 return Container(
-                                  width: 50,
-                                  height: 50,
+                                  width: 45,
+                                  height: 45,
                                   decoration: BoxDecoration(
                                     color: candidateData.isNotEmpty
                                         ? AppConstants.success
@@ -1330,7 +1415,7 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                                     child: Icon(
                                       Icons.visibility,
                                       color: Colors.grey,
-                                      size: 24,
+                                      size: 20,
                                     ),
                                   ),
                                 );
@@ -1341,8 +1426,8 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                         // Right eye drop zone
                         if (!_rightCucumberPlaced)
                           Positioned(
-                            right: 55,
-                            top: 80,
+                            right: 50,
+                            top: 70,
                             child: DragTarget<String>(
                               onAcceptWithDetails: (details) {
                                 if (details.data == 'right') {
@@ -1353,8 +1438,8 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                               },
                               builder: (context, candidateData, rejectedData) {
                                 return Container(
-                                  width: 50,
-                                  height: 50,
+                                  width: 45,
+                                  height: 45,
                                   decoration: BoxDecoration(
                                     color: candidateData.isNotEmpty
                                         ? AppConstants.success
@@ -1372,7 +1457,7 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                                     child: Icon(
                                       Icons.visibility,
                                       color: Colors.grey,
-                                      size: 24,
+                                      size: 20,
                                     ),
                                   ),
                                 );
@@ -1383,22 +1468,22 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                         // Placed cucumbers on eyes
                         if (_leftCucumberPlaced)
                           Positioned(
-                            left: 55,
-                            top: 80,
+                            left: 50,
+                            top: 70,
                             child: Image.asset(
                               MakeupAssets.cucumber,
-                              width: 50,
-                              height: 50,
+                              width: 45,
+                              height: 45,
                             ),
                           ),
                         if (_rightCucumberPlaced)
                           Positioned(
-                            right: 55,
-                            top: 80,
+                            right: 50,
+                            top: 70,
                             child: Image.asset(
                               MakeupAssets.cucumber,
-                              width: 50,
-                              height: 50,
+                              width: 45,
+                              height: 45,
                             ),
                           ),
                       ],
@@ -1419,19 +1504,19 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                         data: 'left',
                         feedback: Image.asset(
                           MakeupAssets.cucumber,
-                          width: 60,
-                          height: 60,
+                          width: 50,
+                          height: 50,
                         ),
                         childWhenDragging: Opacity(
                           opacity: 0.3,
                           child: Image.asset(
                             MakeupAssets.cucumber,
-                            width: 60,
-                            height: 60,
+                            width: 50,
+                            height: 50,
                           ),
                         ),
                         child: Container(
-                          padding: const EdgeInsets.all(10),
+                          padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
                             color: AppConstants.cardColor,
                             borderRadius: BorderRadius.circular(12),
@@ -1442,13 +1527,13 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                           ),
                           child: Image.asset(
                             MakeupAssets.cucumber,
-                            width: 60,
-                            height: 60,
+                            width: 50,
+                            height: 50,
                           ),
                         ),
                       ),
 
-                    const SizedBox(width: 40),
+                    const SizedBox(width: 30),
 
                     // Right cucumber to drag
                     if (!_rightCucumberPlaced)
@@ -1456,19 +1541,19 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                         data: 'right',
                         feedback: Image.asset(
                           MakeupAssets.cucumber,
-                          width: 60,
-                          height: 60,
+                          width: 50,
+                          height: 50,
                         ),
                         childWhenDragging: Opacity(
                           opacity: 0.3,
                           child: Image.asset(
                             MakeupAssets.cucumber,
-                            width: 60,
-                            height: 60,
+                            width: 50,
+                            height: 50,
                           ),
                         ),
                         child: Container(
-                          padding: const EdgeInsets.all(10),
+                          padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
                             color: AppConstants.cardColor,
                             borderRadius: BorderRadius.circular(12),
@@ -1479,8 +1564,8 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                           ),
                           child: Image.asset(
                             MakeupAssets.cucumber,
-                            width: 60,
-                            height: 60,
+                            width: 50,
+                            height: 50,
                           ),
                         ),
                       ),
@@ -1491,18 +1576,18 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
           ),
         ),
 
-        const SizedBox(height: 20),
+        const SizedBox(height: 12),
 
         // Progress section
         if (_leftCucumberPlaced && _rightCucumberPlaced) ...[
           const Text(
-            'Swipe in cirkels om het masker uit te smeren!',
+            'Swipe in cirkels!',
             style: TextStyle(
               fontSize: 14,
               color: AppConstants.textSecondary,
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           _buildProgressBar(_maskSpreadProgress, AppConstants.success),
         ] else ...[
           Row(
@@ -1513,19 +1598,21 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                     ? Icons.check_circle
                     : Icons.circle_outlined,
                 color: _leftCucumberPlaced ? AppConstants.success : Colors.grey,
+                size: 20,
               ),
-              const SizedBox(width: 8),
-              const Text('Linker oog'),
-              const SizedBox(width: 24),
+              const SizedBox(width: 6),
+              const Text('Links', style: TextStyle(fontSize: 12)),
+              const SizedBox(width: 20),
               Icon(
                 _rightCucumberPlaced
                     ? Icons.check_circle
                     : Icons.circle_outlined,
                 color:
                     _rightCucumberPlaced ? AppConstants.success : Colors.grey,
+                size: 20,
               ),
-              const SizedBox(width: 8),
-              const Text('Rechter oog'),
+              const SizedBox(width: 6),
+              const Text('Rechts', style: TextStyle(fontSize: 12)),
             ],
           ),
         ],
@@ -1533,35 +1620,27 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
     );
   }
 
+  // IMPROVED: More robust timing game
   Widget _buildGlowPhase() {
     return GestureDetector(
       onTap: _handleTimingTap,
+      behavior: HitTestBehavior.opaque,
       child: Column(
         children: [
           const Text(
             'Perfect Timing!',
             style: TextStyle(
-              fontSize: 28,
+              fontSize: 24,
               fontWeight: FontWeight.bold,
               color: AppConstants.textPrimary,
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            _timingSuccess ? 'Geweldig!' : 'Stop de balk in het groene gebied!',
-            style: TextStyle(
-              fontSize: 16,
-              color: _timingSuccess
-                  ? AppConstants.success
-                  : AppConstants.textSecondary,
-            ),
-          ),
-          const SizedBox(height: 30),
+          const SizedBox(height: 20),
 
-          // Timing bar game
+          // Timing bar game - IMPROVED
           Container(
-            width: 300,
-            height: 60,
+            width: 280,
+            height: 70,
             decoration: BoxDecoration(
               color: AppConstants.cardColor,
               borderRadius: BorderRadius.circular(12),
@@ -1572,50 +1651,100 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
             ),
             child: Stack(
               children: [
-                // Target zone (center)
-                Center(
+                // Red zones on sides
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
                   child: Container(
-                    width: 60,
-                    height: 60,
+                    width: 280 * (0.5 - _targetZoneSize / 2),
                     decoration: BoxDecoration(
-                      color: AppConstants.success.withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: AppConstants.success,
-                        width: 3,
+                      color: AppConstants.danger.withValues(alpha: 0.2),
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(10),
+                        bottomLeft: Radius.circular(10),
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  right: 0,
+                  top: 0,
+                  bottom: 0,
+                  child: Container(
+                    width: 280 * (0.5 - _targetZoneSize / 2),
+                    decoration: BoxDecoration(
+                      color: AppConstants.danger.withValues(alpha: 0.2),
+                      borderRadius: const BorderRadius.only(
+                        topRight: Radius.circular(10),
+                        bottomRight: Radius.circular(10),
                       ),
                     ),
                   ),
                 ),
 
-                // Moving indicator
+                // Target zone (center) - larger and more visible
+                Center(
+                  child: Container(
+                    width: 280 * _targetZoneSize,
+                    height: 70,
+                    decoration: BoxDecoration(
+                      color: AppConstants.success.withValues(alpha: 0.4),
+                      border: Border.all(
+                        color: AppConstants.success,
+                        width: 3,
+                      ),
+                    ),
+                    child: Center(
+                      child: Icon(
+                        Icons.check,
+                        color: AppConstants.success.withValues(alpha: 0.5),
+                        size: 30,
+                      ),
+                    ),
+                  ),
+                ),
+
+                // Moving indicator - more visible
                 AnimatedBuilder(
                   animation: _timingBarController,
                   builder: (context, child) {
                     // Position from -1 to 1 mapped to actual pixels
-                    double indicatorX = 150 + (_timingBarPosition * 120);
+                    double indicatorX = 140 + (_timingBarPosition * 120);
 
                     return Positioned(
-                      left: indicatorX - 8,
-                      top: 10,
+                      left: indicatorX - 10,
+                      top: 5,
                       child: Container(
-                        width: 16,
-                        height: 40,
+                        width: 20,
+                        height: 60,
                         decoration: BoxDecoration(
                           color: _timingSuccess
                               ? AppConstants.success
-                              : AppConstants.primaryRed,
-                          borderRadius: BorderRadius.circular(4),
+                              : _canTapTiming
+                                  ? AppConstants.primaryRed
+                                  : Colors.grey,
+                          borderRadius: BorderRadius.circular(6),
                           boxShadow: [
                             BoxShadow(
                               color: (_timingSuccess
                                       ? AppConstants.success
                                       : AppConstants.primaryRed)
-                                  .withValues(alpha: 0.5),
-                              blurRadius: 8,
+                                  .withValues(alpha: 0.6),
+                              blurRadius: 10,
                               spreadRadius: 2,
                             ),
                           ],
+                        ),
+                        child: Center(
+                          child: Container(
+                            width: 4,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.5),
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
                         ),
                       ),
                     );
@@ -1625,113 +1754,127 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
             ),
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
 
           // Feedback message
-          if (_timingFeedback != null)
-            TweenAnimationBuilder<double>(
-              tween: Tween(begin: 0, end: 1),
-              duration: const Duration(milliseconds: 300),
-              builder: (context, value, child) {
-                return Transform.scale(
-                  scale: value,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 24, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: _timingSuccess
-                          ? AppConstants.success
-                          : AppConstants.danger,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      _timingFeedback!,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
+          SizedBox(
+            height: 50,
+            child: _timingFeedback != null
+                ? TweenAnimationBuilder<double>(
+                    key: ValueKey(_timingFeedback),
+                    tween: Tween(begin: 0, end: 1),
+                    duration: const Duration(milliseconds: 300),
+                    builder: (context, value, child) {
+                      return Transform.scale(
+                        scale: value,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: _timingSuccess
+                                ? AppConstants.success
+                                : _timingFeedback == 'BIJNA! 💫'
+                                    ? AppConstants.warning
+                                    : AppConstants.danger,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Text(
+                            _timingFeedback!,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  )
+                : const SizedBox.shrink(),
+          ),
 
           // Cooldown indicator
           if (!_canTapTiming && !_timingSuccess)
             Padding(
-              padding: const EdgeInsets.only(top: 20),
-              child: Column(
+              padding: const EdgeInsets.only(top: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const SizedBox(
-                    width: 30,
-                    height: 30,
+                    width: 20,
+                    height: 20,
                     child: CircularProgressIndicator(
-                      strokeWidth: 3,
+                      strokeWidth: 2,
                       valueColor:
                           AlwaysStoppedAnimation<Color>(AppConstants.warning),
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(width: 8),
                   const Text(
-                    'Wacht even...',
+                    'Wacht...',
                     style: TextStyle(
                       color: AppConstants.warning,
                       fontWeight: FontWeight.bold,
+                      fontSize: 14,
                     ),
                   ),
                 ],
               ),
             ),
 
-          const SizedBox(height: 30),
+          const SizedBox(height: 16),
 
-          // Tap button
+          // Tap button - bigger and more obvious
           if (!_timingSuccess)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-              decoration: BoxDecoration(
-                color: _canTapTiming ? AppConstants.accentGold : Colors.grey,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: _canTapTiming
-                    ? [
-                        BoxShadow(
-                          color: AppConstants.accentGold.withValues(alpha: 0.4),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ]
-                    : null,
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.touch_app,
-                    color: _canTapTiming ? Colors.white : Colors.grey[400],
-                    size: 28,
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    'TAP!',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
+            GestureDetector(
+              onTap: _handleTimingTap,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 50, vertical: 18),
+                decoration: BoxDecoration(
+                  color: _canTapTiming ? AppConstants.accentGold : Colors.grey,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: _canTapTiming
+                      ? [
+                          BoxShadow(
+                            color:
+                                AppConstants.accentGold.withValues(alpha: 0.5),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.touch_app,
                       color: _canTapTiming ? Colors.white : Colors.grey[400],
+                      size: 32,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 12),
+                    Text(
+                      'TAP NU!',
+                      style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: _canTapTiming ? Colors.white : Colors.grey[400],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
 
           if (_timingAttempts > 0 && !_timingSuccess)
             Padding(
-              padding: const EdgeInsets.only(top: 16),
+              padding: const EdgeInsets.only(top: 12),
               child: Text(
                 'Pogingen: $_timingAttempts',
                 style: const TextStyle(
                   color: AppConstants.textSecondary,
-                  fontSize: 14,
+                  fontSize: 12,
                 ),
               ),
             ),
@@ -1751,7 +1894,7 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
           child: Column(
             children: [
               Container(
-                padding: const EdgeInsets.all(40),
+                padding: const EdgeInsets.all(32),
                 decoration: BoxDecoration(
                   color: AppConstants.cardColor,
                   borderRadius: BorderRadius.circular(24),
@@ -1772,12 +1915,12 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                     const Text(
                       'PRACHTIG!',
                       style: TextStyle(
-                        fontSize: 36,
+                        fontSize: 32,
                         fontWeight: FontWeight.bold,
                         color: AppConstants.textPrimary,
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
                     Stack(
                       alignment: Alignment.center,
                       children: [
@@ -1791,15 +1934,15 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                             builder: (context, animValue, child) {
                               return Transform.translate(
                                 offset: Offset(
-                                  cos(angle) * 70 * animValue,
-                                  sin(angle) * 70 * animValue,
+                                  cos(angle) * 60 * animValue,
+                                  sin(angle) * 60 * animValue,
                                 ),
                                 child: Opacity(
                                   opacity: animValue,
                                   child: Image.asset(
                                     MakeupAssets.sparkle,
-                                    width: 24,
-                                    height: 24,
+                                    width: 20,
+                                    height: 20,
                                   ),
                                 ),
                               );
@@ -1808,16 +1951,16 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                         }),
                         Image.asset(
                           MakeupAssets.crown,
-                          width: 100,
-                          height: 100,
+                          width: 80,
+                          height: 80,
                         ),
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 10,
+                        horizontal: 16,
+                        vertical: 8,
                       ),
                       decoration: BoxDecoration(
                         color: AppConstants.success.withValues(alpha: 0.1),
@@ -1828,9 +1971,9 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
                         ),
                       ),
                       child: Text(
-                        'Klaar in ${90 - _timeRemaining} seconden!',
+                        'Klaar in ${22 - _timeRemaining} seconden!',
                         style: const TextStyle(
-                          fontSize: 18,
+                          fontSize: 16,
                           color: AppConstants.success,
                           fontWeight: FontWeight.bold,
                         ),
@@ -1848,24 +1991,24 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
 
   Widget _buildProgressBar(double progress, Color color) {
     return Container(
-      width: 250,
-      height: 16,
+      width: 220,
+      height: 14,
       decoration: BoxDecoration(
         color: AppConstants.cardColor,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(7),
         border: Border.all(
           color: color.withValues(alpha: 0.3),
           width: 1,
         ),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(7),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          width: 250 * progress.clamp(0.0, 1.0),
+          width: 220 * progress.clamp(0.0, 1.0),
           decoration: BoxDecoration(
             color: color,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(7),
           ),
         ),
       ),
@@ -1878,43 +2021,16 @@ class _MakeupGameState extends State<MakeupGame> with TickerProviderStateMixin {
       children: List.generate(total, (index) {
         final isCompleted = index < completed;
         return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 4),
+          margin: const EdgeInsets.symmetric(horizontal: 3),
           child: Icon(
             isCompleted ? Icons.check_circle : Icons.circle_outlined,
             color: isCompleted
                 ? color
                 : AppConstants.textSecondary.withValues(alpha: 0.3),
-            size: 20,
+            size: 18,
           ),
         );
       }),
-    );
-  }
-
-  Widget _buildInstructions() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        decoration: BoxDecoration(
-          color: _getPhaseColor().withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: _getPhaseColor(),
-            width: 2,
-          ),
-        ),
-        child: Text(
-          _getPhaseInstruction(),
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: AppConstants.textPrimary,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            height: 1.4,
-          ),
-        ),
-      ),
     );
   }
 }

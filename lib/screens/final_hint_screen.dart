@@ -7,11 +7,6 @@ class FinalHintScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Final Surprise'),
-        backgroundColor: AppConstants.primaryRed,
-        foregroundColor: Colors.white,
-      ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -36,7 +31,7 @@ class FinalHintScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 32),
                 Text(
-                  'Congratulations!',
+                  'Gefeliciteerd!',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                         color: AppConstants.primaryRed,
                         fontWeight: FontWeight.bold,
@@ -64,7 +59,7 @@ class FinalHintScreen extends StatelessWidget {
                       vertical: 16,
                     ),
                   ),
-                  child: const Text('Back to Start'),
+                  child: const Text('Terug naar start'),
                 ),
               ],
             ),

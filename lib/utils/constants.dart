@@ -15,11 +15,11 @@ class AppConstants {
   static const textSecondary = Color(0xFF757575);
 
   // Game Settings - Kindle
-  static const kindleTargetPages = 14;
+  static const kindleTargetPages = 140;
   static const kindleTimeSeconds = 20;
 
   // Game Settings - Popcorn
-  static const popcornTarget = 10;
+  static const popcornTarget = 18;
   static const popcornTimeSeconds = 20;
 
   // Game Settings - Makeup (no timer)
@@ -30,14 +30,17 @@ class AppConstants {
   static const codeKindle = 'E-READER';
   static const codePopcorn = 'POPCORN';
   static const codeMakeup = 'MAKE-UP';
-  static const codeGift = 'GIFT';
+  static const codeGift = 'KADOOTJE';
 
-  // Hints
-  static const hintKindle = 'Look where you read your stories...';
+  // Hints - in het gedicht moet de locatie van de make-up qr code staan daarna eerst makeup spel dan popcorn dan kindle dan laatste hint
+  static const hintKindle = 'Zoek naar het kadootje dichtbij Seoul en Tokyo';
   static const hintPopcorn = 'Check the place where kernels pop!';
-  static const hintMakeup = 'Find the spot where you get ready!';
-  static const hintGift = 'The final gift is hidden... under the bed!';
-  static const hintFinalCodeLocation = 'Find the QR code... near the mirror!';
+  static const hintMakeup =
+      'In een groene draak zul je vinden wat je zoekt. Deze draak bevindt zich naast een alpaca';
+  static const hintGift =
+      'Je kado is te vinden achter een lichtgevend en geluidmakend beeldscherm';
+  static const hintFinalCodeLocation =
+      'Zoek het kadootje... op het zwarte muziekinstrument!';
 }
 
 class SinterklaasTheme {

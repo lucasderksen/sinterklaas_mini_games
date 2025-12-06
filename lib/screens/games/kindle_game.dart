@@ -186,7 +186,8 @@ class _KindleGameState extends State<KindleGame> with TickerProviderStateMixin {
         context: context,
         title: '🎉 Gelukt!',
         emoji: '📖',
-        message: 'Hint voor de volgende code:\n\n${AppConstants.hintPopcorn}',
+        message:
+            'Goed gedaan je hebt alle spellen gehaald!\n De volgende code is "kadootje"',
         giftMessage: 'Kindle Page Turner',
         buttonText: 'Terug naar start',
         buttonColor: AppConstants.success,
@@ -749,7 +750,7 @@ class _KindleGameState extends State<KindleGame> with TickerProviderStateMixin {
               ),
               const SizedBox(height: 8),
               const Text(
-                '📖 TAP OM PAGINA OM TE SLAAN!',
+                '📖 Tik zo snel mogelijk!',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 16,

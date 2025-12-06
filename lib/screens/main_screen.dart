@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:audioplayers/audioplayers.dart';
 import '../utils/constants.dart';
 import '../models/game_state.dart';
 import 'games/kindle_game.dart';
@@ -16,7 +17,89 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   final TextEditingController _codeController = TextEditingController();
   final GameStateManager _gameState = GameStateManager();
+  final AudioPlayer _audioPlayer = AudioPlayer();
+  bool _isPlaying = false;
+  bool _showEnglish = false;
   String? _errorMessage;
+
+  static const String _dutchPoem = """
+Lieve Daniela, de Sint is hier,
+Met cadeautjes en heel veel plezier!
+
+Op je werk ging jij vooruit,
+Jouw talent stak er bovenuit!
+Global Brand Manager, wat een eer,
+Jouw groei verbaast ons keer op keer!
+
+Je Sip en Swap was een groot feest,
+Wijn en kleding ruilen - jij bent een beest!
+Door jou helpen wij nu Kevin mee,
+Als wereldouders - wat een goed idee!
+
+Mama kwam dit jaar vaak langs,
+Van Breda naar Brussel, wat een dans!
+Samen lunchen was zo fijn,
+Al mag de gratis oppas nu even niet meer zijn!
+
+Maar wacht, er waren ook wat streken,
+Die Sint toch even moet bespreken!
+Met AI nam je ons in de maling,
+Neppe inbrekers - wat een verhaling!
+
+Sint vond het stiekem best wel grappig,
+Maar belonen? Nee, dat is te slappig!
+Je cadeau krijg je dus niet zomaar,
+Tech-piet maakte iets speciaals klaar!
+
+Zoek de QR-codes, scan ze snel,
+Speel de spellen, doe het wel!
+Pas dan krijg je de hint te pakken,
+En mag je je cadeautje uitpakken!
+
+Veel succes en plezier,
+Groetjes Sint - hij was graag hier!""";
+
+  static const String _englishPoem = """
+Dear Daniela, Sint is here,
+With gifts and lots of cheer!
+At work you really made your mark,
+Your talent shone, a real spark!
+Global Brand Manager, what an honor,
+Your growth amazes us, you're a stunner!
+Your Sip and Swap was quite the party,
+Wine and clothes swapping - you're a smarty!
+Thanks to you we now help Kevin too,
+As world parents - what a thing to do!
+Mom came to visit quite a lot,
+From Breda to Brussels, not an easy shot!
+Lunching together was such a delight,
+Though the free babysitter is no longer in sight!
+But wait, there were some pranks as well,
+That Sint really needs to tell!
+With AI you fooled us all,
+Fake intruders - you had a ball!
+Sint found it secretly quite funny,
+But reward you? No, that costs too much money!
+Your gift won't come to you with ease,
+Tech-piet made something special, if you please!
+Find the QR codes, scan them fast,
+Play the games until the last!
+Only then you'll get the clue,
+And unwrap the gift that's meant for you!
+Good luck and have some fun,
+Greetings from Sint - his work is done!""";
+
+  @override
+  void initState() {
+    super.initState();
+    _audioPlayer.onPlayerComplete.listen((event) {
+      if (mounted) {
+        setState(() {
+          _isPlaying = false;
+        });
+      }
+    });
+  }
 
   void _handleCodeSubmit() {
     final code = _codeController.text.trim().toUpperCase();
@@ -55,6 +138,7 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   void dispose() {
+    _audioPlayer.dispose();
     _codeController.dispose();
     super.dispose();
   }
@@ -138,7 +222,7 @@ class _MainScreenState extends State<MainScreen> {
                         ),
                       ),
                       const SizedBox(height: 24),
-                      const ExpansionTile(
+                      ExpansionTile(
                         title: Text(
                           '📜 Gedicht van Sint',
                           style: TextStyle(
@@ -148,26 +232,71 @@ class _MainScreenState extends State<MainScreen> {
                         ),
                         children: [
                           Padding(
-                            padding: EdgeInsets.all(16.0),
-                            child: Text(
-                              "Lieve Daniela,\n\n"
-                              "Sinterklaas is weer in het land,\n"
-                              "En heeft iets leuks voor jou gepland.\n"
-                              "Geen chocoladeletter of marsepein,\n"
-                              "Maar een digitaal spel, dat is pas fijn!\n\n"
-                              "Je moet codes zoeken, heel goed speuren,\n"
-                              "Om te zien wat er gaat gebeuren.\n"
-                              "Drie spellen staan er voor je klaar,\n"
-                              "Met elk een code, is dat niet raar?\n\n"
-                              "De eerste code krijg je cadeau,\n"
-                              "Voor je e-reader, dat maakt je blij zo.\n"
-                              "Vul 'E-READER' in en ga snel van start,\n"
-                              "Sint wenst je veel plezier met heel zijn hart!",
-                              style: TextStyle(
-                                fontStyle: FontStyle.italic,
-                                height: 1.5,
-                              ),
-                              textAlign: TextAlign.center,
+                            padding: const EdgeInsets.only(
+                                left: 16.0,
+                                right: 16.0,
+                                top: 0.0,
+                                bottom: 16.0),
+                            child: Column(
+                              children: [
+                                IconButton(
+                                  icon: Icon(
+                                    _isPlaying
+                                        ? Icons.pause_circle_filled
+                                        : Icons.play_circle_fill,
+                                    size: 48,
+                                    color: AppConstants.primaryRed,
+                                  ),
+                                  onPressed: () async {
+                                    if (_isPlaying) {
+                                      await _audioPlayer.pause();
+                                    } else {
+                                      await _audioPlayer
+                                          .play(AssetSource('sinterklaas.mp3'));
+                                    }
+                                    setState(() {
+                                      _isPlaying = !_isPlaying;
+                                    });
+                                  },
+                                ),
+                                const SizedBox(height: 8),
+                                const Text(
+                                  "Luister naar Sint!",
+                                  style: TextStyle(
+                                    color: AppConstants.textSecondary,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                TextButton.icon(
+                                  onPressed: () {
+                                    setState(() {
+                                      _showEnglish = !_showEnglish;
+                                    });
+                                  },
+                                  icon: const Icon(Icons.translate),
+                                  label: Text(_showEnglish
+                                      ? "Switch to Dutch"
+                                      : "Vertaal naar Engels"),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  _showEnglish ? _englishPoem : _dutchPoem,
+                                  style: TextStyle(
+                                    fontStyle: FontStyle.italic,
+                                    height: 1.5,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 16),
+                                Center(
+                                  child: Text(
+                                      "Hint voor je eerste code:\n\n${AppConstants.hintKindle}",
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                          color: AppConstants.textSecondary)),
+                                ),
+                              ],
                             ),
                           ),
                         ],
