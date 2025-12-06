@@ -15,11 +15,11 @@ class AppConstants {
   static const textSecondary = Color(0xFF757575);
 
   // Game Settings - Kindle
-  static const kindleTargetPages = 140;
+  static const kindleTargetPages = 160;
   static const kindleTimeSeconds = 20;
 
   // Game Settings - Popcorn
-  static const popcornTarget = 18;
+  static const popcornTarget = 20;
   static const popcornTimeSeconds = 20;
 
   // Game Settings - Makeup (no timer)
