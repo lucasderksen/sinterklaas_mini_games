@@ -79610,7 +79610,7 @@ s.be()
 s=r.at
 s===$&&A.a()
 s.be()
-if(r.e>=140){s=r.w
+if(r.e>=160){s=r.w
 if(s!=null)s.ac()
 r.Mf(!0)}},
 Me(){var s,r=this
@@ -79624,7 +79624,7 @@ s.cT()},
 Mf(a){var s=this,r=s.c
 if(a){r.toString
 A.GI(B.a_,"Terug naar start",r,"\ud83d\udcd6","Kindle Page Turner",'Goed gedaan je hebt alle spellen gehaald!\n De volgende code is "kadootje"',new A.ahf(s),!0,"\ud83c\udf89 Gelukt!")}else{r.toString
-A.GI(B.cu,"\ud83d\udd04 Opnieuw proberen",r,"\ud83d\udcda",null,"Je hebt "+s.e+" van de 140 pagina's gelezen.",new A.ahg(s),!1,"\ud83d\ude05 Helaas!")}},
+A.GI(B.cu,"\ud83d\udd04 Opnieuw proberen",r,"\ud83d\udcda",null,"Je hebt "+s.e+" van de 160 pagina's gelezen.",new A.ahg(s),!1,"\ud83d\ude05 Helaas!")}},
 a7T(){var s=this,r=s.y
 r===$&&A.a()
 r.sn(r.a)
@@ -79797,7 +79797,7 @@ s.x=!1},
 $S:0}
 A.ahj.prototype={
 $2(a,b){var s,r,q,p,o,n=null,m=this.a,l=m.d===B.dA,k=l?n:0
-if(l){s=m.e/140
+if(l){s=m.e/160
 l=A.c([new A.c1(0,B.au,B.l.bn(0.05),B.ue,4)],t.E)
 r=m.r
 q=r<=10?B.D:B.cu
@@ -79806,7 +79806,7 @@ o=t.p
 p=A.ba(n,A.eC(A.c([B.EQ,B.dU,A.bH(""+r+"s",n,n,n,B.zh,n,n)],o),B.C,B.aC,0),B.m,n,n,new A.aT(q,n,n,p,n,n,B.x),n,n,n,B.fV,n,n,n)
 q=A.br(20)
 r=A.fc(B.aI.bn(0.2),B.r,1)
-q=A.eC(A.c([p,A.ba(n,A.bH(""+m.e+" / 140",n,n,n,A.cO(n,n,B.bb,n,n,n,n,n,n,n,n,22,n,n,B.O,n,n,!0,n,n,n,n,n,n,n,n),n,n),B.m,n,n,new A.aT(B.j,n,r,q,n,n,B.x),n,n,n,B.je,n,n,n)],o),B.kk,B.M,0)
+q=A.eC(A.c([p,A.ba(n,A.bH(""+m.e+" / 160",n,n,n,A.cO(n,n,B.bb,n,n,n,n,n,n,n,n,22,n,n,B.O,n,n,!0,n,n,n,n,n,n,n,n),n,n),B.m,n,n,new A.aT(B.j,n,r,q,n,n,B.x),n,n,n,B.je,n,n,n)],o),B.kk,B.M,0)
 r=A.br(10)
 p=s>=1?B.a_:B.aJ
 l=A.ba(n,A.cp(A.c([q,B.d7,A.Gx(r,new A.xB(12,s,B.iT,n,new A.la(p,t.Jn),n,n,n))],o),B.G,B.C,B.M),B.m,n,n,new A.aT(B.bc,n,n,B.Ai,l,n,B.x),n,n,n,B.DQ,n,n,n)}else l=B.ak
@@ -80505,7 +80505,7 @@ s=r.Q
 s===$&&A.a()
 s.be().bo(new A.ajS(r),t.P)
 r.Nj(a)
-if(r.e>=18){s=r.w
+if(r.e>=20){s=r.w
 if(s!=null)s.ac()
 s=r.x
 if(s!=null)s.ac()
@@ -80550,7 +80550,7 @@ n.a=0}o.aQ$.a.P(0)
 o.j4()}B.b.P(s)
 m.X(new A.ajT(m))
 m.ace()},
-ace(){A.fN(B.b1,new A.ajZ(this,this.e>=18),t.P)},
+ace(){A.fN(B.b1,new A.ajZ(this,this.e>=20),t.P)},
 aaP(){var s=this,r=s.w
 if(r!=null)r.ac()
 r=s.x
@@ -80603,7 +80603,7 @@ switch(p.d.a){case 0:return p.a0B()
 case 1:return p.a0O()
 case 2:return p.a0x()
 case 3:s=p.e
-r=s>=18
+r=s>=20
 q=A.bM(r?"assets/popcorn_bowl.png":"assets/empty_bowl.png",B.aP,200,o,o)
 return A.cS(A.cp(A.c([q,B.d8,A.bH(r?"\ud83c\udf89":"\ud83d\ude05",o,o,o,B.T9,o,o),B.l6,A.bH(""+s+" popcorn gevangen!",o,o,o,A.cO(o,o,B.bb,o,o,o,o,o,o,o,o,24,o,o,B.O,o,o,!0,o,o,o,o,o,o,o,o),o,o)],t.p),B.G,B.bf,B.M),o,o)}},
 a0B(){return A.a23(new A.ajI(this))},
@@ -80681,7 +80681,7 @@ A.ajZ.prototype={
 $0(){var s=this.a,r=s.c
 if(r==null)return
 if(this.b)A.GI(B.a_,"Terug naar start",r,"\ud83c\udf7f","Popcorn Maker","Hint voor de volgende code:\n\nIn een groene draak zul je vinden wat je zoekt. Deze draak bevindt zich naast een alpaca",new A.ajX(s),!0,"\ud83c\udf89 Gelukt!")
-else A.GI(B.cu,"\ud83d\udd04 Opnieuw proberen",r,"\ud83c\udf7f",null,"Je hebt "+s.e+" van de 18 popcorn gevangen.",new A.ajY(s),!1,"\ud83d\ude05 Helaas!")},
+else A.GI(B.cu,"\ud83d\udd04 Opnieuw proberen",r,"\ud83c\udf7f",null,"Je hebt "+s.e+" van de 20 popcorn gevangen.",new A.ajY(s),!1,"\ud83d\ude05 Helaas!")},
 $S:14}
 A.ajX.prototype={
 $0(){var s=this.a
@@ -80777,8 +80777,8 @@ A.ajy.prototype={
 $2(a,b){var s,r=null,q=this.a,p=q.r,o=p<=5?B.D:B.cu,n=A.br(25),m=t.p
 n=A.ba(r,A.eC(A.c([B.ES,B.dU,A.bH(""+p+"s",r,r,r,B.Rj,r,r)],m),B.C,B.aC,0),B.m,r,r,new A.aT(o,r,r,n,r,r,B.x),r,r,r,B.fV,r,r,r)
 o=A.br(25)
-p=A.fc(q.e>=18?B.a_:B.aI.bn(0.2),B.r,2)
-o=A.bP(r,A.eC(A.c([n,A.ba(r,A.eC(A.c([B.TT,B.dU,A.bH(""+q.e+" / 18",r,r,r,A.cO(r,r,B.bb,r,r,r,r,r,r,r,r,22,r,r,B.O,r,r,!0,r,r,r,r,r,r,r,r),r,r)],m),B.C,B.aC,0),B.m,r,r,new A.aT(B.bc,r,p,o,r,r,B.x),r,r,r,B.fV,r,r,r)],m),B.kk,B.M,0),r,r,16,16,10,r)
+p=A.fc(q.e>=20?B.a_:B.aI.bn(0.2),B.r,2)
+o=A.bP(r,A.eC(A.c([n,A.ba(r,A.eC(A.c([B.TT,B.dU,A.bH(""+q.e+" / 20",r,r,r,A.cO(r,r,B.bb,r,r,r,r,r,r,r,r,22,r,r,B.O,r,r,!0,r,r,r,r,r,r,r,r),r,r)],m),B.C,B.aC,0),B.m,r,r,new A.aT(B.bc,r,p,o,r,r,B.x),r,r,r,B.fV,r,r,r)],m),B.kk,B.M,0),r,r,16,16,10,r)
 p=q.z
 p===$&&A.a()
 p=A.c([o,A.bP(r,A.cS(A.d3(p,new A.ajv(q),A.bM("assets/popcorn_maker.png",B.aP,120,r,r)),r,r),r,r,0,0,80,r)],m)
